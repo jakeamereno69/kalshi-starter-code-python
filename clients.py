@@ -24,7 +24,7 @@ class KalshiBaseClient:
         self,
         key_id: str,
         private_key: rsa.RSAPrivateKey,
-        environment: Environment = Environment.DEMO,
+        environment: Environment = Environment.PROD, #change me
     ):
         """Initializes the client with the provided API key and private key.
 
@@ -84,18 +84,21 @@ class KalshiBaseClient:
 
 class KalshiHttpClient(KalshiBaseClient):
     """Client for handling HTTP connections to the Kalshi API."""
-    def __init__(
-        self,
-        key_id: str,
-        private_key: rsa.RSAPrivateKey,
-        environment: Environment = Environment.DEMO,
-    ):
+    def __init__(self, key_id, private_key, environment: Environment):
         super().__init__(key_id, private_key, environment)
         self.host = self.HTTP_BASE_URL
         self.exchange_url = "/trade-api/v2/exchange"
         self.markets_url = "/trade-api/v2/markets"
         self.portfolio_url = "/trade-api/v2/portfolio"
 
+    def get_markets(self, params=None) -> Dict[str, Any]:
+        path = "/trade-api/v2/markets" if self.environment == Environment.PROD else "/v1/markets"
+        return self.get(path, params=params)
+
+    def get_market(self, market_ticker):
+        path = f"{self.markets_url}/{market_ticker}"
+        return self.get(path)
+    
     def rate_limit(self) -> None:
         """Built-in rate limiter to prevent exceeding API rate limits."""
         THRESHOLD_IN_MILLISECONDS = 100
